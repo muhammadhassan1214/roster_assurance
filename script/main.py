@@ -150,6 +150,4 @@ def main():
 
 
 if __name__ == "__main__":
-    run_automation(from_date='03/01/2026', to_date='03/17/2026')
-    # run_year_automation(2026)
-    # main()
+    main()
