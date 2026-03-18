@@ -1,0 +1,6 @@
+data/
+chrome-dir
+.idea
+__pycache__
+.env
+venv
