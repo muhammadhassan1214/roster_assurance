@@ -173,6 +173,10 @@ def eCards_automation(driver, from_date, to_date):
     try:
         if login_to_ecards(driver):
             logger.info("Login successful!")
+            accept_cookies_button = check_element_exists(driver, El.ACCEPT_COOKIES_BUTTON)
+            if accept_cookies_button:
+                click_element(driver, El.ACCEPT_COOKIES_BUTTON)
+                logger.info("Accepted cookies.")
             search_eCards(driver, from_date, to_date)
             if check_element_exists(driver, El.NO_RESULT_FOUND, timeout=2):
                 logger.info("No results found for the given date range.")

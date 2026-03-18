@@ -15,6 +15,7 @@ class ECardsLocators:
     FROM_DATE_INPUT = (By.ID, "courseFromDate")
     TO_DATE_INPUT = (By.ID, "courseToDate")
     NO_RESULT_FOUND = (By.XPATH, "//div[text()= 'No results found.']")
+    ACCEPT_COOKIES_BUTTON = (By.XPATH, "//button[text()= 'Accept All Cookies']")
 
 # Enrollware locators
 class EnrollwareLocators:
