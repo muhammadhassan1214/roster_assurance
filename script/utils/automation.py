@@ -166,6 +166,16 @@ def no_match_found(driver):
         return False
 
 
+def handle_popup(driver, locator):
+    try:
+        button = check_element_exists(driver, locator)
+        if button:
+            click_element(driver, locator)
+            logger.info("Handled popup successfully.")
+    except Exception as e:
+        logger.error(f"An error occurred while handling popup: {e}")
+
+
 def eCards_automation(driver, from_date, to_date):
     data = []
     page_counter = 1
@@ -173,10 +183,8 @@ def eCards_automation(driver, from_date, to_date):
     try:
         if login_to_ecards(driver):
             logger.info("Login successful!")
-            accept_cookies_button = check_element_exists(driver, El.ACCEPT_COOKIES_BUTTON)
-            if accept_cookies_button:
-                click_element(driver, El.ACCEPT_COOKIES_BUTTON)
-                logger.info("Accepted cookies.")
+            handle_popup(driver, El.ACCEPT_COOKIES_BUTTON)
+            handle_popup(driver, El.WELCOME_POP_UP_CLOSE_BUTTON)
             search_eCards(driver, from_date, to_date)
             if check_element_exists(driver, El.NO_RESULT_FOUND, timeout=2):
                 logger.info("No results found for the given date range.")
