@@ -11,7 +11,6 @@ from .helper import (
     wait_while_element_is_displaying,
     safe_navigate_to_url, check_element_exists
 )
-from .email_log import add_entry_if_new
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 instructors_data_csv = f"{BASE_DIR}/data/instructorList.csv"
@@ -153,7 +152,7 @@ def search_student_using_email(driver, email, index):
             select_by_text(driver, Els.SEARCH_FOR_SELECT, "email address")
         input_element(driver, Els.SEARCH_INPUT, email)
         click_element(driver, Els.SEARCH_BUTTON)
-        logger.info(f'Searched for {email}')
+        logger.info(f'Searched for {email} - {index + 1}/200')
     except Exception as e:
         logger.error(f"An error occurred while searching for student: {e}")
 
@@ -229,7 +228,22 @@ def enrollware_automation(driver, ecards_data):
                     email_send_to_list = [os.getenv("TC_EMAIL")]
                     if instructor_email:
                         email_send_to_list.append(instructor_email)
-                    add_entry_if_new(record, 5, email_send_to_list)
+
+                    try:
+                        from .scheduler.service import add_new_record
+                    except Exception as exc:  # avoid circular import issues
+                        logger.error("Failed to import scheduler add_new_record: %s", exc)
+                        continue
+
+                    added = add_new_record(
+                        source_id=record.get("eCard Code"),
+                        recipients=email_send_to_list,
+                        data_payload=record,
+                    )
+                    if added:
+                        logger.info("Queued follow-up workflow for eCard %s", record.get("eCard Code"))
+                    else:
+                        logger.info("eCard %s already queued; skipping", record.get("eCard Code"))
                 continue
             logger.info("All students processed in Enrollware.")
         else:

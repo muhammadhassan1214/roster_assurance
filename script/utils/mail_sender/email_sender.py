@@ -23,7 +23,7 @@ def _build_recipients(receiver_emails):
     return recipients
 
 
-def send_bulk_email(receiver_emails, html_content, subject):
+def send_bulk_email(receiver_emails, html_content, subject="Immediate Action Required – Roster Submission and Course Records"):
     recipients = _build_recipients(receiver_emails)
     if not recipients:
         print("No valid recipient emails provided.")
