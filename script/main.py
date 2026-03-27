@@ -9,7 +9,7 @@ from utils.helper import logger, get_undetected_driver
 
 
 def run_automation(from_date: str, to_date: str):
-    driver = get_undetected_driver(headless=False)
+    driver = get_undetected_driver(headless=True)
     if not driver:
         raise RuntimeError("Unable to initialize browser driver")
     try:
