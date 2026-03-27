@@ -75,8 +75,25 @@ def main():
 
     if "log_lines" not in st.session_state:
         st.session_state.log_lines = []
+    if "is_running" not in st.session_state:
+        st.session_state.is_running = False
+    if "start_requested" not in st.session_state:
+        st.session_state.start_requested = False
 
-    mode = st.radio("Date Range Mode", ["Month", "Year"], index=0, horizontal=True)
+    if st.session_state.start_requested and not st.session_state.is_running:
+        st.session_state.is_running = True
+
+    def request_start():
+        st.session_state.start_requested = True
+
+    mode = st.radio(
+        "Date Range Mode",
+        ["Month", "Year"],
+        index=0,
+        horizontal=True,
+        disabled=st.session_state.is_running,
+        key="mode",
+    )
 
     from_date = None
     to_date = None
@@ -85,19 +102,49 @@ def main():
 
     if mode == "Month":
         with col1:
-            from_date = st.date_input("From Date", value=date.today(), format="MM/DD/YYYY")
+            from_date = st.date_input(
+                "From Date",
+                value=st.session_state.get("from_date", date.today()),
+                format="MM/DD/YYYY",
+                key="from_date",
+                disabled=st.session_state.is_running,
+            )
         with col2:
-            to_date = st.date_input("To Date", value=date.today(), format="MM/DD/YYYY")
+            to_date = st.date_input(
+                "To Date",
+                value=st.session_state.get("to_date", date.today()),
+                format="MM/DD/YYYY",
+                key="to_date",
+                disabled=st.session_state.is_running,
+            )
         with col3:
-            start_clicked = st.button("Start Automation", type="primary", use_container_width=True)
+            start_clicked = st.button(
+                "Start Automation",
+                type="primary",
+                use_container_width=True,
+                disabled=st.session_state.is_running,
+                on_click=request_start,
+            )
 
     else:
         current_year = date.today().year
         year_options = list(range(current_year - 4, current_year + 1))
         with col1:
-            selected_year = st.selectbox("Select Year", options=year_options, index=len(year_options) - 1)
+            selected_year = st.selectbox(
+                "Select Year",
+                options=year_options,
+                index=len(year_options) - 1,
+                key="selected_year",
+                disabled=st.session_state.is_running,
+            )
         with col2:
-            start_clicked = st.button("Start Automation", type="primary", use_container_width=True)
+            start_clicked = st.button(
+                "Start Automation",
+                type="primary",
+                use_container_width=True,
+                disabled=st.session_state.is_running,
+                on_click=request_start,
+            )
 
     log_box = st.empty()
 
@@ -128,8 +175,10 @@ def main():
             return False
         return True
 
-    if start_clicked:
+    if st.session_state.is_running:
         if mode == "Month" and (from_date is None or to_date is None or not validate_range(from_date, to_date)):
+            st.session_state.is_running = False
+            st.session_state.start_requested = False
             return
         st.session_state.log_lines = []
         handler = StreamlitLogHandler()
@@ -146,6 +195,8 @@ def main():
             logger.error(f"An error occurred: {e}")
             st.error(f"Error: {e}")
         finally:
+            st.session_state.is_running = False
+            st.session_state.start_requested = False
             logger.removeHandler(handler)
 
 
