@@ -14,6 +14,7 @@ from .helper import (
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 instructors_data_csv = f"{BASE_DIR}/data/instructorList.csv"
+no_match_found_csv = f"{BASE_DIR}/data/no_match_found.csv"
 load_dotenv(verbose=True)
 
 def login_to_ecards(driver) -> bool:
@@ -165,6 +166,28 @@ def no_match_found(driver):
         return False
 
 
+def save_no_match_to_csv(student_email: str, instructor_email: str):
+    """Save student email and instructor email to CSV file when no match is found."""
+    try:
+        file_exists = os.path.isfile(no_match_found_csv)
+        
+        with open(no_match_found_csv, mode='a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            
+            # Write header if file is new
+            if not file_exists:
+                writer.writerow(['Student Email', 'Instructor Email', 'Timestamp'])
+            
+            # Write the record
+            from datetime import datetime
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            writer.writerow([student_email, instructor_email or 'N/A', timestamp])
+        
+        logger.info(f"Saved no-match record: {student_email} - {instructor_email}")
+    except Exception as e:
+        logger.error(f"Failed to save no-match record to CSV: {e}")
+
+
 def handle_popup(driver, locator):
     try:
         button = check_element_exists(driver, locator)
@@ -228,6 +251,9 @@ def enrollware_automation(driver, ecards_data):
                     email_send_to_list = [os.getenv("TC_EMAIL")]
                     if instructor_email:
                         email_send_to_list.append(instructor_email)
+
+                    # Save no-match record to CSV
+                    save_no_match_to_csv(student_email, instructor_email)
 
                     try:
                         from .scheduler.service import add_new_record
